@@ -1,4 +1,12 @@
 {
 	"user" : "me",
-	"pass" : "user"
+	"pass" : "user",
+	"snapshot" : {
+		"user" : "me",
+		"pass" : "user"
+	},
+	"release" : {
+		"user" : "me",
+		"pass" : "user"
+	}
 }

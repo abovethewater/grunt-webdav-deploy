@@ -22,7 +22,7 @@ function addFileToZip(grunt, zip, filepath) {
     zip.folder(filepath);
     var directory = fs.readdirSync(filepath);
     directory.forEach(function(subfilepath) {
-      addFileToZip(path.join(filepath,subfilepath));
+      addFileToZip(grunt, zip, path.join(filepath,subfilepath));
     });
   } else {
     grunt.log.writeln("Adding file", filepath);
@@ -162,8 +162,17 @@ module.exports = function(grunt) {
 
     if (options.basic_auth === true) {
       var auth = grunt.file.readJSON('./.webdav_auth.json');
-      var user = auth.user;
-      var pass = auth.pass;
+      var user = auth[options.strategy.toLowerCase()].user;
+      var pass = auth[options.strategy.toLowerCase()].pass;
+
+      if (typeof user !== "string") {
+        user = auth.user;
+      }
+
+      if (typeof pass !== "string") {
+        pass = auth.pass;
+      }      
+
       if (typeof user !== "string" || typeof pass !== "string") {
         grunt.log.error("basic_auth specified, but not provided");      
         return false;        
