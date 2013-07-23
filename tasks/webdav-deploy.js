@@ -1,0 +1,192 @@
+/*
+ * grunt-webdav
+ * https://github.com/abovethewater/grunt-webdav
+ *
+ * Copyright (c) 2013 Joe
+ * Licensed under the MIT license.
+ *
+ * Man this is ugly.. refactor
+ *
+ */
+
+ 'use strict';
+
+ var fs = require('fs'),
+    path = require('path'),
+    url = require('url'),
+    JSZip = require('node-zip');
+
+function addFileToZip(grunt, zip, filepath) {
+  if(fs.lstatSync(filepath).isDirectory()) {
+    grunt.log.writeln("Adding folder", filepath);
+    zip.folder(filepath);
+    var directory = fs.readdirSync(filepath);
+    directory.forEach(function(subfilepath) {
+      addFileToZip(path.join(filepath,subfilepath));
+    });
+  } else {
+    grunt.log.writeln("Adding file", filepath);
+    zip.file(filepath, fs.readFileSync(filepath, 'binary'));
+  }
+}
+
+function performHTTPActions(httpOptions) {
+
+    var http = httpOptions.http;
+    var grunt = httpOptions.grunt;
+
+    var req = http.request(httpOptions, function(res) {
+      
+      grunt.log.write('Status: ' + res.statusCode + '\n');
+
+      if (httpOptions.method === 'DELETE') {
+        if (res.statusCode === 204) {
+          grunt.log.ok('Remote file removed');
+        } else if (res.statusCode === 404) {
+          grunt.log.writeln('Remote file did not exist');
+        }
+        grunt.log.writeln();
+        httpOptions.method = 'PUT';
+        performHTTPActions(httpOptions);
+      } else {
+        if (res.statusCode === 201) {
+          grunt.log.writeln(httpOptions.dest);
+          grunt.log.subhead('Successfully deployed');
+        } else if (res.statusCode === 204) {
+          grunt.log.error('Remote file exists!');
+          httpOptions.done(false);
+        }
+        httpOptions.done();
+      }
+    });        
+
+    req.on('error', function(e) {
+      grunt.log.error('problem with request: ' + e.message);
+      grunt.log.error(e.stack);
+      throw e;
+    });    
+
+    if (httpOptions.method === 'DELETE') {
+      grunt.log.writeln('Removing existing zip');
+      req.end();
+    } else {
+      grunt.log.writeln('Deploying zip');
+      req.end(httpOptions.data, 'binary');  
+    }
+}
+
+module.exports = function(grunt) {
+
+  grunt.registerMultiTask('webdav_deploy', function() {
+
+    if (this.filesSrc.length === 0) {
+      grunt.log.error("Requires src files.");
+      return false;      
+    }    
+
+    // Merge task-specific and/or target-specific options with these defaults.
+    var options = this.options({
+      basic_auth : false,
+      strategy : 'SNAPSHOT',
+      snapshot_filename : 'SNAPSHOT',
+      overwrite_release : false,
+      suffix : 'zip'
+    });    
+
+    if (typeof options.strategy !== "string" || 
+      typeof options.snapshot_filename  !== "string" || options.overwrite_release === undefined ||
+      typeof options.suffix !== 'string') {
+      grunt.log.error("Missing required option!");      
+      return false;      
+    }
+
+    var dest, initialMethod;
+
+    if ('SNAPSHOT' === options.strategy.toUpperCase()) {
+      if (typeof options.snapshot_path !== "string") {
+        grunt.log.error("Missing snapshot_path!");      
+        return false;              
+      }
+
+      initialMethod = 'DELETE';
+
+      dest = options.snapshot_path + "/" + options.snapshot_filename + "." + options.suffix;
+
+    } else if ('RELEASE' === options.strategy.toUpperCase()) {
+      if (typeof options.release_path !== "string") {
+        grunt.log.error("Missing release_path!");      
+        return false;              
+      }      
+
+      if (options.overwrite_release === true) {
+        initialMethod = 'DELETE';
+      } else {
+        initialMethod = 'PUT';
+      }      
+
+      var version = grunt.file.readJSON('./package.json').version;
+
+      dest = options.release_path + "/" + version + "." + options.suffix;
+
+    } else {
+      grunt.log.error("Unknown strategy " + options.strategy.toUpperCase());      
+      return false;
+    }
+
+    var http;
+
+    var deconstructedDest = url.parse(dest);
+
+    switch (deconstructedDest.protocol) {
+      case 'http:' :
+        http = require('http');
+        break;
+      case 'https:' :
+        http = require('https');
+        break;
+      default :
+        grunt.log.error("Invalid transport " + dest);      
+        return false;                
+    }
+
+    var httpOptions = {
+      http : http,
+      'method' : initialMethod,
+      hostname : deconstructedDest.hostname,
+      port : deconstructedDest.port,
+      path : deconstructedDest.path,
+      dest : dest,
+      grunt : grunt,
+      done : this.async(),
+    };
+
+    if (options.basic_auth === true) {
+      var auth = grunt.file.readJSON('./.webdav_auth.json');
+      var user = auth.user;
+      var pass = auth.pass;
+      if (typeof user !== "string" || typeof pass !== "string") {
+        grunt.log.error("basic_auth specified, but not provided");      
+        return false;        
+      }
+
+      httpOptions.auth = user + ":" + pass;
+    }    
+
+    // Iterate over all specified file groups.
+
+    grunt.log.writeln('Creating zip..');
+    var zip = new JSZip();
+    this.filesSrc.forEach(function(f) {    
+      addFileToZip(grunt, zip, f);
+    });    
+    grunt.log.writeln('');
+
+    var data = zip.generate({base64:false,compression:'DEFLATE'});
+
+    httpOptions.data = data;
+
+    performHTTPActions(httpOptions);
+
+  });
+
+};
