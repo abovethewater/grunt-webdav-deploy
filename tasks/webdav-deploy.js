@@ -191,7 +191,7 @@ module.exports = function(grunt) {
       if (options.baseDir !== undefined && options.baseDir !== './' && options.baseDir !== './') {
         origDir = process.cwd();
 
-        process.chdir(options.baseDir)
+        process.chdir(options.baseDir);
 
         f = path.relative(options.baseDir, f);
       }
@@ -199,7 +199,7 @@ module.exports = function(grunt) {
       addFileToZip(grunt, zip, f);
 
       if (origDir !== undefined) {
-        process.chdir(origDir)
+        process.chdir(origDir);
       }
 
     });
