@@ -36,7 +36,7 @@ function performHTTPActions(httpOptions) {
     var grunt = httpOptions.grunt;
 
     var req = http.request(httpOptions, function(res) {
-      
+
       grunt.log.write('Status: ' + res.statusCode + '\n');
 
       if (httpOptions.method === 'DELETE') {
@@ -58,20 +58,20 @@ function performHTTPActions(httpOptions) {
         }
         httpOptions.done();
       }
-    });        
+    });
 
     req.on('error', function(e) {
       grunt.log.error('problem with request: ' + e.message);
       grunt.log.error(e.stack);
       throw e;
-    });    
+    });
 
     if (httpOptions.method === 'DELETE') {
       grunt.log.writeln('Removing existing zip');
       req.end();
     } else {
       grunt.log.writeln('Deploying zip');
-      req.end(httpOptions.data, 'binary');  
+      req.end(httpOptions.data, 'binary');
     }
 }
 
@@ -81,8 +81,8 @@ module.exports = function(grunt) {
 
     if (this.filesSrc.length === 0) {
       grunt.log.error("Requires src files.");
-      return false;      
-    }    
+      return false;
+    }
 
     // Merge task-specific and/or target-specific options with these defaults.
     var options = this.options({
@@ -90,22 +90,23 @@ module.exports = function(grunt) {
       strategy : 'SNAPSHOT',
       snapshot_filename : 'SNAPSHOT',
       overwrite_release : false,
-      suffix : 'zip'
-    });    
+      suffix : 'zip',
+      baseDir : './'
+    });
 
-    if (typeof options.strategy !== "string" || 
+    if (typeof options.strategy !== "string" ||
       typeof options.snapshot_filename  !== "string" || options.overwrite_release === undefined ||
       typeof options.suffix !== 'string') {
-      grunt.log.error("Missing required option!");      
-      return false;      
+      grunt.log.error("Missing required option!");
+      return false;
     }
 
     var dest, initialMethod;
 
     if ('SNAPSHOT' === options.strategy.toUpperCase()) {
       if (typeof options.snapshot_path !== "string") {
-        grunt.log.error("Missing snapshot_path!");      
-        return false;              
+        grunt.log.error("Missing snapshot_path!");
+        return false;
       }
 
       initialMethod = 'DELETE';
@@ -114,22 +115,22 @@ module.exports = function(grunt) {
 
     } else if ('RELEASE' === options.strategy.toUpperCase()) {
       if (typeof options.release_path !== "string") {
-        grunt.log.error("Missing release_path!");      
-        return false;              
-      }      
+        grunt.log.error("Missing release_path!");
+        return false;
+      }
 
       if (options.overwrite_release === true) {
         initialMethod = 'DELETE';
       } else {
         initialMethod = 'PUT';
-      }      
+      }
 
       var version = grunt.file.readJSON('./package.json').version;
 
       dest = options.release_path + "/" + version + "." + options.suffix;
 
     } else {
-      grunt.log.error("Unknown strategy " + options.strategy.toUpperCase());      
+      grunt.log.error("Unknown strategy " + options.strategy.toUpperCase());
       return false;
     }
 
@@ -145,8 +146,8 @@ module.exports = function(grunt) {
         http = require('https');
         break;
       default :
-        grunt.log.error("Invalid transport " + dest);      
-        return false;                
+        grunt.log.error("Invalid transport " + dest);
+        return false;
     }
 
     var httpOptions = {
@@ -171,23 +172,36 @@ module.exports = function(grunt) {
 
       if (typeof pass !== "string") {
         pass = auth.pass;
-      }      
+      }
 
       if (typeof user !== "string" || typeof pass !== "string") {
-        grunt.log.error("basic_auth specified, but not provided");      
-        return false;        
+        grunt.log.error("basic_auth specified, but not provided");
+        return false;
       }
 
       httpOptions.auth = user + ":" + pass;
-    }    
-
-    // Iterate over all specified file groups.
+    }
 
     grunt.log.writeln('Creating zip..');
     var zip = new JSZip();
-    this.filesSrc.forEach(function(f) {    
+    this.filesSrc.forEach(function(f) {
+      var origDir;
+
+      if (options.baseDir !== undefined && options.baseDir !== './' && options.baseDir !== './') {
+        origDir = process.cwd();
+
+        process.chdir(options.baseDir)
+
+        f = path.relative(options.baseDir, f);
+      }
+
       addFileToZip(grunt, zip, f);
-    });    
+
+      if (origDir !== undefined) {
+        process.chdir(origDir)
+      }
+
+    });
     grunt.log.writeln('');
 
     var data = zip.generate({base64:false,compression:'DEFLATE'});

@@ -21,10 +21,10 @@ Once the plugin has been installed, it may be enabled inside your Gruntfile with
 grunt.loadNpmTasks('grunt-webdav-deploy');
 ```
 
-## The "webdav" task
+## The "webdav_deploy" task
 
 ### Overview
-In your project's Gruntfile, add a section named `webdav` to the data object passed into `grunt.initConfig()`.
+In your project's Gruntfile, add a section named `webdav_deploy` to the data object passed into `grunt.initConfig()`.
 
 ```js
 grunt.initConfig({
@@ -33,6 +33,7 @@ grunt.initConfig({
       // Task-specific options go here.
       snapshot_path : 'https://example.com/snapshot',
       release_path : 'https://example.com/version',
+      baseDir : './'
       basic_auth: false,
       strategy : 'SNAPSHOT',
       snapshot_filename : 'SNAPSHOT',
@@ -80,7 +81,7 @@ A string value that defines the repository path for releases.
 
 http and https are supported, as is basic auth of the form:
 
-  user:password@  
+  user:password@
 
 #### options.strategy
 Type: `String`
@@ -110,6 +111,13 @@ Default value: `zip`
 Required : `false`
 
 The suffix for the generated zip file
+
+#### options.basedir
+Type `String`
+Default value : './'
+Required : 'false'
+
+The root directory to base the created zip file from
 
 #### options.overwrite_release
 Type: `Boolean`
