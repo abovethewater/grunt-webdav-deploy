@@ -41,10 +41,15 @@ grunt.initConfig({
     },
     deploy: {
       // Target-specific file lists and/or options go here.
+      files: {
+        src: ['a/file', 'a/directory', 'all/files/in/dir/*', '*glob*'],
+      }
     },
   },
 })
 ```
+
+
 
 ### Options
 
