@@ -120,6 +120,7 @@ module.exports = function(grunt) {
       }
 
       if (options.overwrite_release === true) {
+        grunt.log.warn('Release will be overwritten');
         initialMethod = 'DELETE';
       } else {
         initialMethod = 'PUT';
