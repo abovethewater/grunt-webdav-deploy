@@ -186,4 +186,5 @@ Using the following package.json
 In lieu of a formal styleguide, take care to maintain the existing coding style. Lint and test your code using [Grunt](http://gruntjs.com/).
 
 ## Release History
-_(Nothing yet)_
+0.1.0 Initial release to NPM
+0.1.1 Added support for baseDir
