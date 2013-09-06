@@ -14,19 +14,15 @@
  var fs = require('fs'),
     path = require('path'),
     url = require('url'),
-    JSZip = require('node-zip');
+    AdmZip = require('adm-zip');
 
 function addFileToZip(grunt, zip, filepath) {
   if(fs.lstatSync(filepath).isDirectory()) {
     grunt.log.writeln("Adding folder", filepath);
-    zip.folder(filepath);
-    var directory = fs.readdirSync(filepath);
-    directory.forEach(function(subfilepath) {
-      addFileToZip(grunt, zip, path.join(filepath,subfilepath));
-    });
+    zip.addLocalFolder(filepath);
   } else {
     grunt.log.writeln("Adding file", filepath);
-    zip.file(filepath, fs.readFileSync(filepath, 'binary'));
+    zip.addLocalFile(filepath);
   }
 }
 
@@ -120,7 +116,6 @@ module.exports = function(grunt) {
       }
 
       if (options.overwrite_release === true) {
-        grunt.log.warn('Release will be overwritten');
         initialMethod = 'DELETE';
       } else {
         initialMethod = 'PUT';
@@ -184,14 +179,14 @@ module.exports = function(grunt) {
     }
 
     grunt.log.writeln('Creating zip..');
-    var zip = new JSZip();
+    var zip = new AdmZip();
     this.filesSrc.forEach(function(f) {
       var origDir;
 
       if (options.baseDir !== undefined && options.baseDir !== './' && options.baseDir !== './') {
         origDir = process.cwd();
 
-        process.chdir(options.baseDir);
+        process.chdir(options.baseDir)
 
         f = path.relative(options.baseDir, f);
       }
@@ -199,13 +194,13 @@ module.exports = function(grunt) {
       addFileToZip(grunt, zip, f);
 
       if (origDir !== undefined) {
-        process.chdir(origDir);
+        process.chdir(origDir)
       }
 
     });
     grunt.log.writeln('');
 
-    var data = zip.generate({base64:false,compression:'DEFLATE'});
+    var data = zip.toBuffer();
 
     httpOptions.data = data;
 

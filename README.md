@@ -2,6 +2,13 @@
 
 > Deploy a zipped archive to your webdav repository for use with build systems such as bower
 
+## Note ##
+Currently issues with corrupt images in all the zip libs I have tried.
+
+See [https://github.com/cthackers/adm-zip/issues/57]()
+
+See [https://github.com/daraosn/node-zip/issues/4]()
+
 ## Warning ##
 
 > This plugin contains destructive default options.
