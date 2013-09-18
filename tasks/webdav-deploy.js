@@ -14,15 +14,20 @@
  var fs = require('fs'),
     path = require('path'),
     url = require('url'),
-    AdmZip = require('adm-zip');
+    archiver = require('archiver');
 
 function addFileToZip(grunt, zip, filepath) {
   if(fs.lstatSync(filepath).isDirectory()) {
     grunt.log.writeln("Adding folder", filepath);
-    zip.addLocalFolder(filepath);
+    // zip.folder(filepath);
+    var directory = fs.readdirSync(filepath);
+    directory.forEach(function(subfilepath) {
+      addFileToZip(grunt, zip, path.join(filepath,subfilepath));
+    });
   } else {
     grunt.log.writeln("Adding file", filepath);
-    zip.addLocalFile(filepath);
+    zip.append(fs.createReadStream(filepath), { name: filepath });
+    // zip.file(filepath, fs.readFileSync(filepath, 'binary'));
   }
 }
 
@@ -116,6 +121,7 @@ module.exports = function(grunt) {
       }
 
       if (options.overwrite_release === true) {
+        grunt.log.warn('Release will be overwritten');
         initialMethod = 'DELETE';
       } else {
         initialMethod = 'PUT';
@@ -179,14 +185,24 @@ module.exports = function(grunt) {
     }
 
     grunt.log.writeln('Creating zip..');
-    var zip = new AdmZip();
+    var zip = new archiver('zip');
+    zip.on('error', function(err) {
+      throw err;
+    });
+
+    var tmpFile = __dirname + '/../.deploy-tmp.zip';
+
+    var output = fs.createWriteStream(tmpFile);
+
+    zip.pipe(output);
+
     this.filesSrc.forEach(function(f) {
       var origDir;
 
       if (options.baseDir !== undefined && options.baseDir !== './' && options.baseDir !== './') {
         origDir = process.cwd();
 
-        process.chdir(options.baseDir)
+        process.chdir(options.baseDir);
 
         f = path.relative(options.baseDir, f);
       }
@@ -194,17 +210,35 @@ module.exports = function(grunt) {
       addFileToZip(grunt, zip, f);
 
       if (origDir !== undefined) {
-        process.chdir(origDir)
+        process.chdir(origDir);
       }
 
     });
     grunt.log.writeln('');
 
-    var data = zip.toBuffer();
+    var done = this.async();
 
-    httpOptions.data = data;
+    zip.finalize(function(err, bytes) {
 
-    performHTTPActions(httpOptions);
+      if (err) {
+        throw err;
+      }
+
+      console.log(bytes + ' total bytes');
+    });
+
+    fs.readFile(tmpFile, 'base64', function (err,data) {
+      if (err) {
+        throw err;
+      }
+
+      // fs.unlink(__dirname + '/../.deploy-tmp.zip');
+
+      httpOptions.data = data;
+
+      performHTTPActions(httpOptions);
+
+    });
 
   });
 
