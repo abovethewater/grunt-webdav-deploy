@@ -7,6 +7,8 @@
  *
  * Man this is ugly.. refactor
  *
+ * Now even worse, but finally found a zip solution that works
+ *
  */
 
  'use strict';
@@ -19,7 +21,6 @@
 function addFileToZip(grunt, zip, filepath) {
   if(fs.lstatSync(filepath).isDirectory()) {
     grunt.log.writeln("Adding folder", filepath);
-    // zip.folder(filepath);
     var directory = fs.readdirSync(filepath);
     directory.forEach(function(subfilepath) {
       addFileToZip(grunt, zip, path.join(filepath,subfilepath));
@@ -27,7 +28,6 @@ function addFileToZip(grunt, zip, filepath) {
   } else {
     grunt.log.writeln("Adding file", filepath);
     zip.append(fs.createReadStream(filepath), { name: filepath });
-    // zip.file(filepath, fs.readFileSync(filepath, 'binary'));
   }
 }
 
@@ -159,8 +159,7 @@ module.exports = function(grunt) {
       port : deconstructedDest.port,
       path : deconstructedDest.path,
       dest : dest,
-      grunt : grunt,
-      done : this.async(),
+      grunt : grunt
     };
 
     if (options.basic_auth === true) {
@@ -190,7 +189,7 @@ module.exports = function(grunt) {
       throw err;
     });
 
-    var tmpFile = __dirname + '/../.deploy-tmp.zip';
+    var tmpFile = __dirname + '/../deploy-tmp.zip';
 
     var output = fs.createWriteStream(tmpFile);
 
@@ -224,20 +223,17 @@ module.exports = function(grunt) {
         throw err;
       }
 
-      console.log(bytes + ' total bytes');
-    });
+      grunt.log.writeln(bytes + ' total bytes');
 
-    fs.readFile(tmpFile, 'base64', function (err,data) {
-      if (err) {
-        throw err;
-      }
-
-      // fs.unlink(__dirname + '/../.deploy-tmp.zip');
+      var data = fs.readFileSync(tmpFile);
 
       httpOptions.data = data;
+      httpOptions.done = function() {
+        fs.unlink(tmpFile);
+        done();
+      };
 
       performHTTPActions(httpOptions);
-
     });
 
   });
