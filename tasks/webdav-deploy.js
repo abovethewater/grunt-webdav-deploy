@@ -45,6 +45,14 @@ function performHTTPActions(httpOptions) {
           grunt.log.ok('Remote file removed');
         } else if (res.statusCode === 404) {
           grunt.log.writeln('Remote file did not exist');
+        } else if (res.statusCode === 405) {
+          grunt.log.error('Remote server does not support webdav!');
+          httpOptions.done(false);
+          return;
+        } else {
+          grunt.log.error('Unknown error occurred!');
+          httpOptions.done(false);
+          return;
         }
         grunt.log.writeln();
         httpOptions.method = 'PUT';
@@ -56,6 +64,15 @@ function performHTTPActions(httpOptions) {
         } else if (res.statusCode === 204) {
           grunt.log.error('Remote file exists!');
           httpOptions.done(false);
+          return;
+        } else if (res.statusCode === 405) {
+          grunt.log.error('Remote server does not support webdav!');
+          httpOptions.done(false);
+          return;
+        } else {
+          grunt.log.error('Unknown error occurred!');
+          httpOptions.done(false);
+          return;
         }
         httpOptions.done();
       }
@@ -228,9 +245,9 @@ module.exports = function(grunt) {
       var data = fs.readFileSync(tmpFile);
 
       httpOptions.data = data;
-      httpOptions.done = function() {
+      httpOptions.done = function(retVal) {
         fs.unlink(tmpFile);
-        done();
+        done(retVal !== false);
       };
 
       performHTTPActions(httpOptions);
