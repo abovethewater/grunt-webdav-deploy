@@ -6,7 +6,7 @@
   "author": {
     "name": "Joe",
     "email": "joe@abovethewater.co.uk",
-    "url": "abovethewater.co.uk"
+    "url": "http://abovethewater.co.uk"
   },
   "repository": {
     "type": "git",
@@ -39,6 +39,6 @@
     "grunt": "~0.4.1"
   },
   "keywords": [
-    "gruntplugin webdav deploy maven bower archiva"
+    "gruntplugin", "webdav", "deploy", "maven", "bower", "archiva"
   ]
 }
