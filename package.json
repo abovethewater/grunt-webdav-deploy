@@ -1,7 +1,7 @@
 {
   "name": "grunt-webdav-deploy",
   "description": "Deploy your zipped code to your webdav directory for use with build systems such as bower",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "homepage": "https://github.com/abovethewater/grunt-webdav-deploy",
   "author": {
     "name": "Joe",
@@ -33,12 +33,17 @@
     "grunt": "~0.4.1"
   },
   "dependencies": {
-    "archiver": "~0.4.9"
+    "node-zip": "~1.1.0"
   },
   "peerDependencies": {
     "grunt": "~0.4.1"
   },
   "keywords": [
-    "gruntplugin", "webdav", "deploy", "maven", "bower", "archiva"
+    "gruntplugin",
+    "webdav",
+    "deploy",
+    "maven",
+    "bower",
+    "archiva"
   ]
 }

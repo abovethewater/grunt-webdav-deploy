@@ -1,33 +1,31 @@
 /*
- * grunt-webdav
- * https://github.com/abovethewater/grunt-webdav
+ * grunt-webdav-deploy
+ * https://github.com/abovethewater/grunt-webdav-deploy
  *
- * Copyright (c) 2013 Joe
+ * Copyright (c) 2013-2014 Joe
  * Licensed under the MIT license.
+ * Master http://abovethewater.mit-license.org/
  *
- * Man this is ugly.. refactor
- *
- * Now even worse, but finally found a zip solution that works
  *
  */
-
  'use strict';
 
  var fs = require('fs'),
     path = require('path'),
     url = require('url'),
-    archiver = require('archiver');
+    JSZip = require('node-zip');
 
 function addFileToZip(grunt, zip, filepath) {
   if(fs.lstatSync(filepath).isDirectory()) {
     grunt.log.writeln("Adding folder", filepath);
+    zip.folder(filepath);
     var directory = fs.readdirSync(filepath);
     directory.forEach(function(subfilepath) {
       addFileToZip(grunt, zip, path.join(filepath,subfilepath));
     });
   } else {
     grunt.log.writeln("Adding file", filepath);
-    zip.append(fs.createReadStream(filepath), { name: filepath });
+    zip.file(filepath, fs.readFileSync(filepath, 'binary'));
   }
 }
 
@@ -43,6 +41,10 @@ function performHTTPActions(httpOptions) {
       if (httpOptions.method === 'DELETE') {
         if (res.statusCode === 204) {
           grunt.log.ok('Remote file removed');
+        } else if (res.statusCode === 401) {
+          grunt.log.writeln('Authentication failed');
+          httpOptions.done(false);
+          return;
         } else if (res.statusCode === 404) {
           grunt.log.writeln('Remote file did not exist');
         } else if (res.statusCode === 405) {
@@ -58,11 +60,15 @@ function performHTTPActions(httpOptions) {
         httpOptions.method = 'PUT';
         performHTTPActions(httpOptions);
       } else {
-        if (res.statusCode === 201) {
+        if (res.statusCode === 201 || res.statusCode === 200) {
           grunt.log.writeln(httpOptions.dest);
           grunt.log.subhead('Successfully deployed');
         } else if (res.statusCode === 204) {
           grunt.log.error('Remote file exists!');
+          httpOptions.done(false);
+          return;
+        } else if (res.statusCode === 401) {
+          grunt.log.writeln('Authentication failed');
           httpOptions.done(false);
           return;
         } else if (res.statusCode === 405) {
@@ -176,7 +182,8 @@ module.exports = function(grunt) {
       port : deconstructedDest.port,
       path : deconstructedDest.path,
       dest : dest,
-      grunt : grunt
+      grunt : grunt,
+      done : this.async()
     };
 
     if (options.basic_auth === true) {
@@ -201,17 +208,8 @@ module.exports = function(grunt) {
     }
 
     grunt.log.writeln('Creating zip..');
-    var zip = new archiver('zip');
-    zip.on('error', function(err) {
-      throw err;
-    });
 
-    var tmpFile = __dirname + '/../deploy-tmp.zip';
-
-    var output = fs.createWriteStream(tmpFile);
-
-    zip.pipe(output);
-
+    var zip = new JSZip();
     this.filesSrc.forEach(function(f) {
       var origDir;
 
@@ -232,26 +230,11 @@ module.exports = function(grunt) {
     });
     grunt.log.writeln('');
 
-    var done = this.async();
+    var data = zip.generate({base64:false,compression:'DEFLATE'});
 
-    zip.finalize(function(err, bytes) {
+    httpOptions.data = data;
 
-      if (err) {
-        throw err;
-      }
-
-      grunt.log.writeln(bytes + ' total bytes');
-
-      var data = fs.readFileSync(tmpFile);
-
-      httpOptions.data = data;
-      httpOptions.done = function(retVal) {
-        fs.unlink(tmpFile);
-        done(retVal !== false);
-      };
-
-      performHTTPActions(httpOptions);
-    });
+    performHTTPActions(httpOptions);
 
   });
 
