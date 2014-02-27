@@ -26,11 +26,11 @@ module.exports = function(grunt) {
     // Configuration to be run (and then tested).
     webdav_deploy: {
       options: {
-        snapshot_path : 'https://example.com/snapshot',
-        release_path : 'https://example.com/version',
+        snapshot_path : 'http://example.com/snapshot',
+        release_path : 'http://example.com/version',
         // basic_auth : false,
         // snapshot_filename : 'SNAPSHOT',
-        // overwrite_release : false        
+        // overwrite_release : false
         // suffix : 'zip'
       },
       snapshot: {
@@ -44,7 +44,7 @@ module.exports = function(grunt) {
       release: {
         options: {
           strategy : 'RELEASE',
-        },        
+        },
         files: {
           src: ['test/fixtures/testing', 'test/fixtures/123'],
         }

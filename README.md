@@ -31,8 +31,8 @@ grunt.initConfig({
   webdav_deploy: {
     options: {
       // Task-specific options go here.
-      snapshot_path : 'https://example.com/snapshot',
-      release_path : 'https://example.com/version',
+      snapshot_path : 'http://example.com/snapshot',
+      release_path : 'http://example.com/version',
       baseDir : './'
       basic_auth: false,
       strategy : 'SNAPSHOT',
@@ -69,12 +69,15 @@ Required: `false`
 
 Basic auth of the form `user:password@` is supported.
 
-The username and password are expected to be available in a the file `.webdav_auth.json` with the structure
+The username and password are expected to be available in the environment variables
 
-{
-  user : "user",
-  pass : "pass"
-}
+    WEBDAV_USER
+    WEBDAV_PASS
+
+Differing release credentials can be set in
+
+    WEBDAV_RELEASE_USER
+    WEBDAV_RELEASE_PASS
 
 
 #### options.release_path
@@ -84,9 +87,9 @@ Required: `(release === RELEASE)`
 
 A string value that defines the repository path for releases.
 
-http and https are supported, as is basic auth of the form:
+http and https are supported, as is inline basic auth of the form:
 
-  user:password@
+  http(s)://user:password@
 
 #### options.strategy
 Type: `String`

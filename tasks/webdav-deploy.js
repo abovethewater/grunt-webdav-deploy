@@ -187,16 +187,16 @@ module.exports = function(grunt) {
     };
 
     if (options.basic_auth === true) {
-      var auth = grunt.file.readJSON('./.webdav_auth.json');
-      var user = auth[options.strategy.toLowerCase()].user;
-      var pass = auth[options.strategy.toLowerCase()].pass;
+      var user = process.env.WEBDAV_USER;
+      var pass = process.env.WEBDAV_PASS;
 
-      if (typeof user !== "string") {
-        user = auth.user;
-      }
-
-      if (typeof pass !== "string") {
-        pass = auth.pass;
+      if ('RELEASE' === options.strategy.toUpperCase()) {
+        if (process.env.WEBDAV_RELEASE_USER !== undefined) {
+          user = process.env.WEBDAV_RELEASE_USER;
+        }
+        if (process.env.WEBDAV_RELEASE_PASS !== undefined) {
+          pass = process.env.WEBDAV_RELEASE_PASS;
+        }
       }
 
       if (typeof user !== "string" || typeof pass !== "string") {
