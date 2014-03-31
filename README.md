@@ -158,7 +158,7 @@ grunt.initConfig({
 
 #### Release Options
 
-In this example, the contents of the production directory are put into 0.0.1.zip on the remote webdav archive
+In this example, the contents of the production directory are put into mymodule-0.0.1.zip on the remote webdav archive
 
 ```js
 grunt.initConfig({

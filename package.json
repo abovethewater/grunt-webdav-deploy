@@ -1,7 +1,7 @@
 {
   "name": "grunt-webdav-deploy",
   "description": "Deploy your zipped code to your webdav directory for use with build systems such as bower",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "homepage": "https://github.com/abovethewater/grunt-webdav-deploy",
   "author": {
     "name": "Joe",

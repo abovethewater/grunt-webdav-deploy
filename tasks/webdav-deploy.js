@@ -151,8 +151,9 @@ module.exports = function(grunt) {
       }
 
       var version = grunt.file.readJSON('./package.json').version;
+      var version = grunt.file.readJSON('./package.json').version;
 
-      dest = options.release_path + "/" + version + "." + options.suffix;
+      dest = options.release_path + "/" + name + "-" + version + "." + options.suffix;
 
     } else {
       grunt.log.error("Unknown strategy " + options.strategy.toUpperCase());
