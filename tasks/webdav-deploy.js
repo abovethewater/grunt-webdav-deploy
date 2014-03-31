@@ -94,7 +94,7 @@ function performHTTPActions(httpOptions) {
       grunt.log.writeln('Removing existing zip');
       req.end();
     } else {
-      grunt.log.writeln('Deploying zip');
+      grunt.log.writeln('Deploying zip to ' + httpOptions.dest);
       req.end(httpOptions.data, 'binary');
     }
 }
@@ -151,7 +151,7 @@ module.exports = function(grunt) {
       }
 
       var version = grunt.file.readJSON('./package.json').version;
-      var version = grunt.file.readJSON('./package.json').version;
+      var name = grunt.file.readJSON('./package.json').name;
 
       dest = options.release_path + "/" + name + "-" + version + "." + options.suffix;
 
