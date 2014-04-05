@@ -25,7 +25,7 @@ function addFileToZip(grunt, zip, filepath) {
     });
   } else {
     grunt.log.writeln("Adding file", filepath);
-    zip.file(filepath, fs.readFileSync(filepath, 'binary'));
+    zip.file(filepath, fs.readFileSync(filepath), { binary : true });
   }
 }
 
