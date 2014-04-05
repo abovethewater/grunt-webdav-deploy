@@ -102,7 +102,7 @@ The deployment strategy, SNAPSHOT or RELEASE
 
 > The current archive at `${snapshot_path}/${snapshot_filename}.zip` will be removed and replaced
 
-A value of `RELEASE` will produce an archive `${VERSION}.zip` where `VERSION` is taken from the module's package.json
+A value of `RELEASE` will produce an archive `name-${VERSION}.zip` where `VERSION` is taken from the module's package.json
 
 #### options.snapshot_filename
 Type: `String`
@@ -147,10 +147,10 @@ In this example, the contents of the dev directory are put into SNAPSHOT.zip on 
 grunt.initConfig({
   webdav: {
     options: {
-      snapshot_path : 'me:user@http://example.com/incoming/snapshots/myrepo'
+      snapshot_path : 'http://example.com/incoming/snapshots/myrepo'
     },
     files: {
-      'production/**/*'
+      'dev/**/*'
     },
   },
 })
@@ -192,3 +192,5 @@ In lieu of a formal styleguide, take care to maintain the existing coding style.
 
 * 0.1.0 Initial release to NPM
 * 0.1.1 Added support for baseDir
+* ...
+* 0.5.1 Fixed image compression issues with node-zip thanks @xeroply
