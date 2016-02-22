@@ -2,7 +2,7 @@
  * grunt-webdav-deploy
  * https://github.com/abovethewater/grunt-webdav-deploy
  *
- * Copyright (c) 2013 Joe Mathews
+ * Copyright (c) 2013-2016 Joe Mathews
  * Licensed under the MIT license.
  * http://abovethewater.mit-license.org/
  */

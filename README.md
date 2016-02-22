@@ -7,7 +7,7 @@
 > This plugin contains destructive default options.
 
 ## Getting Started
-This plugin requires Grunt `~0.4.1`
+This plugin requires Grunt `>=0.4.0` (supports Grunt 1.0.0)
 
 Install the [grunt-webdav-deploy](https://github.com/abovethewater/grunt-webdav-deploy) plugin with this command:
 
@@ -194,3 +194,5 @@ In lieu of a formal styleguide, take care to maintain the existing coding style.
 * 0.1.1 Added support for baseDir
 * ...
 * 0.5.1 Fixed image compression issues with node-zip thanks @xeroply
+* 0.6.0 Updated to support grunt 1.0.0
+* 0.6.1 Updated documentation
